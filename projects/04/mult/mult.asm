@@ -7,3 +7,33 @@
 // (R0, R1, R2 refer to RAM[0], RAM[1], and RAM[2], respectively.)
 
 // Put your code here.
+
+
+//  set R2 to 0
+//	(loop)
+//	condition implies goto end
+//	R2 = R2 + R0
+//	R1--
+//	goto loop
+//	end
+//
+	
+@2
+M = 0
+(LOOP)
+@0
+D = M
+@END
+D;JEQ
+@1
+D = M
+@2
+M = M + D
+@0
+M = M -1
+@LOOP
+0;JMP
+(END)
+@END
+0;JMP
+
