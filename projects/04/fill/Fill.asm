@@ -12,3 +12,54 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+(LOOP)
+@KBD
+D = M
+@LOOP1
+D;JEQ
+
+@i
+M = 0
+(LOOP2)
+@SCREEN
+D = A
+@i
+D = D + M
+@24576
+D = A - D
+@LOOP
+D;JEQ
+@SCREEN
+D = A
+@i
+D = D + M
+A = D
+M = -1
+@i
+M = M + 1
+@LOOP2
+0;JMP
+
+(LOOP1)
+
+@i
+M = 0
+(LOOP3)
+@SCREEN
+D = A
+@i
+D = D + M
+@24576
+D = A - D
+@LOOP
+D;JEQ
+@SCREEN
+D = A
+@i
+D = D + M
+A = D
+M = 0
+@i
+M = M + 1
+@LOOP3
+0;JMP

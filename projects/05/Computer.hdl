@@ -3,7 +3,7 @@
 // by Nisan and Schocken, MIT Press.
 // File name: projects/05/Computer.hdl
 
-/**
+/*
  * The HACK computer, including CPU, ROM and RAM.
  * When reset is 0, the program stored in the computer's ROM executes.
  * When reset is 1, the execution of the program restarts. 
@@ -14,10 +14,14 @@
  * with the computer via the keyboard.
  */
 
-CHIP Computer {
+CHIP Computer{
 
     IN reset;
 
     PARTS:
     // Put your code here:
+	CPU(inM = memoryoutput, instruction = romout, reset = reset, writeM = loadmemory, outM = data2memory, addressM = address2memory, pc[0..14] = pcoutput);
+	Memory(in = data2memory, address = address2memory, load = loadmemory, out = memoryoutput);
+	ROM32K(address = pcoutput, out = romout);
 }
+

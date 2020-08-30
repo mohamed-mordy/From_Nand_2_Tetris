@@ -25,19 +25,66 @@
  * than to the address resulting from executing the current instruction. 
  */
 
-CHIP CPU {
+CHIP CPU{
 
-    IN  inM[16],         // M value input  (M = contents of RAM[A])
-        instruction[16], // Instruction for execution
-        reset;           // Signals whether to re-start the current
-                         // program (reset==1) or continue executing
-                         // the current program (reset==0).
-
-    OUT outM[16],        // M value output
-        writeM,          // Write to M? 
-        addressM[15],    // Address in data memory (of M)
-        pc[15];          // address of next instruction
+    IN  inM[16],          /* M value input  (M = contents of RAM[A])  */
+		instruction[16],  /* Instruction for execution                */
+		reset;            /* Signals whether to re-start the current  */
+                          /* program (reset==1) or continue executing */
+                          /* the current program (reset==0).          */
+                             
+    OUT outM[16],         /* M value output                           */
+		writeM,           /* Write to M?                              */
+		addressM[15],     /* Address in data memory (of M)            */
+		pc[15];           /* address of next instruction              */
 
     PARTS:
-    // Put your code here:
+
+	/* D Register*/
+	And(a = instruction[4], b = instruction[15], out = loadDregister); /* load bit for DRegister*/
+	DRegister(in = aluout, load = loadDregister, out = dregisterout);
+
+	Not(in = instruction[15], out = instruction15not); /* selector for the Mux*/
+	Mux16(a = aluout, b[0..14] = instruction[0..14], b[15] = false, sel = instruction15not, out = aregisterin); /* Mux16 */
+
+	/* A Register*/
+	Or(a = instruction[5], b = instruction15not, out = aregisterload);
+	ARegister(in = aregisterin, load = aregisterload, out = aregisterout);
+
+	Mux16(a = aregisterout, b = inM, sel = instruction[12], out = muxout); /* Mux16 */
+
+	ALU(x = dregisterout, y = muxout, zx = instruction[11], nx = instruction[10], zy = instruction[9], ny = instruction[8],
+		f = instruction[7], no = instruction[6], out = aluout, zr = zero, ng = negative);
+
+	/* program counter*/
+	PC(in = aregisterout, load = loadcounter, inc = increment, reset = reset, out[0..14] = pc);
+
+	/* output signal to load the memory*/
+	And(a = instruction[3], b = instruction[15], out = writeM);
+
+	/* output signal to address memory*/
+	And16(a = aregisterout, b = true, out[0..14] = addressM);
+
+	/* out to memory*/
+	And16(a = aluout, b = true, out = outM);
+
+	/*signal to increment the counter*/
+	Not(in = instruction[0], out = out0);
+	Not(in = instruction[1], out = out1);
+	Not(in = instruction[2], out = out2);
+	Or(a = out0, b = out1, out = out3);
+	Or(a = out2, b = out3, out = out4);
+	Or(a = instruction15not, b = out4, out = increment);
+
+	/* signal to load the counter*/
+	Not(in = zero, out = zeronot);
+	Not(in = negative, out = ngnot);
+	And(a = zeronot, b = ngnot, out = gt); /* greater than zero*/
+
+	And(a = gt, b = instruction[0], out = gtand);
+	And(a = zero, b = instruction[1], out = zeroand);
+	And(a = negative, b = instruction[2], out = ngand);
+	Or(a = gtand, b = zeroand, out = gtzeroor);
+	Or(a = gtzeroor, b = ngand, out = loadcounter1);
+	And(a = loadcounter1, b = instruction[15], out = loadcounter);
 }
